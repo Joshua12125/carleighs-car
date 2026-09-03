@@ -260,6 +260,11 @@ section{padding:clamp(3.25rem,6vw,5.5rem) 0;}
     radial-gradient(55% 65% at 50% 42%, rgba(10,10,10,0.78) 0%, rgba(10,10,10,0.42) 60%, rgba(10,10,10,0.18) 100%),
     linear-gradient(180deg, rgba(10,10,10,0.3) 0%, transparent 28%, transparent 68%, rgba(10,10,10,0.45) 100%);
 }
+.hero--compact .hero-bg::after{
+  background:
+    linear-gradient(100deg, rgba(10,10,10,0.85) 0%, rgba(10,10,10,0.6) 45%, rgba(10,10,10,0.3) 100%),
+    linear-gradient(180deg, rgba(10,10,10,0.3) 0%, transparent 40%, rgba(10,10,10,0.5) 100%);
+}
 .hero .wrap{position:relative; z-index:2;}
 .hero-content{max-width:50rem; margin:0 auto; text-align:center;}
 .hero-eyebrow{color:var(--pink); font-size:0.85rem; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; margin-bottom:1.1rem;}
@@ -309,6 +314,17 @@ section{padding:clamp(3.25rem,6vw,5.5rem) 0;}
 .split .photo-panel{aspect-ratio:4/3;}
 .split-copy h2{font-size:clamp(1.9rem,3vw,2.5rem); margin-bottom:1rem;}
 .split-copy p{color:var(--cream-dim); margin-bottom:1.75rem; max-width:42ch;}
+
+/* ============ STAT STRIP ============ */
+.stat-strip{padding:clamp(2.5rem,5vw,3.5rem) 0; border-top:1px solid var(--line-soft); border-bottom:1px solid var(--line-soft);}
+.stat-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:1.5rem;}
+.stat-item{text-align:center;}
+.stat-num{
+  display:block; font-family:'Fraunces',serif; font-weight:600; font-size:clamp(2.6rem,4vw,3.4rem);
+  color:var(--pink); line-height:1; margin-bottom:0.6rem;
+}
+.stat-suffix{font-size:0.65em; margin-left:0.1rem;}
+.stat-item p{font-size:0.88rem; font-weight:500; color:var(--cream-dim); letter-spacing:0.01em;}
 
 /* ============ TESTIMONIALS ============ */
 .testimonial-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:1.75rem;}
@@ -468,6 +484,7 @@ footer{background:var(--ink-soft); color:var(--cream-dim); padding:3.75rem 0 2re
   .nav-toggle{display:flex;}
   .mobile-menu{display:block;}
   .service-preview-grid, .testimonial-grid, .differentiators, .approach-grid{grid-template-columns:1fr;}
+  .stat-grid{grid-template-columns:1fr 1fr; gap:2rem 1rem;}
   .differentiator{border-right:none; border-top:1px solid var(--line-soft); padding:2rem 0;}
   .differentiator:first-child{border-top:none; padding-top:0;}
   .service-block, .service-block--reverse{grid-template-columns:1fr; gap:1.75rem; padding:2.75rem 0;}
@@ -592,6 +609,29 @@ footer{background:var(--ink-soft); color:var(--cream-dim); padding:3.75rem 0 2re
         <span class="trust-num">04</span>
         <h3>Customer Experience</h3>
         <p>Simple booking, clear communication, professional service.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="stat-strip">
+    <div class="wrap">
+      <div class="stat-grid reveal-stagger reveal">
+        <div class="stat-item">
+          <span class="stat-num"><span class="stat-count" data-count-to="50">0</span><span class="stat-suffix">+</span></span>
+          <p>Vehicles Completed</p>
+        </div>
+        <div class="stat-item">
+          <span class="stat-num"><span class="stat-count" data-count-to="100">0</span><span class="stat-suffix">%</span></span>
+          <p>Client Satisfaction</p>
+        </div>
+        <div class="stat-item">
+          <span class="stat-num"><span class="stat-count" data-count-to="4.9" data-decimals="1">0</span></span>
+          <p>Star Rating</p>
+        </div>
+        <div class="stat-item">
+          <span class="stat-num"><span class="stat-count" data-count-to="6">0</span><span class="stat-suffix">+</span></span>
+          <p>Years Experience</p>
+        </div>
       </div>
     </div>
   </section>
@@ -848,6 +888,49 @@ footer{background:var(--ink-soft); color:var(--cream-dim); padding:3.75rem 0 2re
       });
     }, { threshold: 0.15, rootMargin: "0px 0px -40px 0px" });
     revealEls.forEach(function (el) { observer.observe(el); });
+  }
+
+  /* ---------- Count-up numbers ---------- */
+  var countEls = document.querySelectorAll("[data-count-to]");
+  function runCount(el) {
+    var target = parseFloat(el.getAttribute("data-count-to")) || 0;
+    var decimals = parseInt(el.getAttribute("data-decimals"), 10) || 0;
+    if (reduceMotion || target <= 1) {
+      el.textContent = target.toFixed(decimals);
+      return;
+    }
+    var duration = 900;
+    var startTime = null;
+    function step(timestamp) {
+      if (startTime === null) startTime = timestamp;
+      var progress = Math.min((timestamp - startTime) / duration, 1);
+      var eased = 1 - Math.pow(1 - progress, 3);
+      var current = eased * target;
+      el.textContent = current.toFixed(decimals);
+      if (progress < 1) {
+        window.requestAnimationFrame(step);
+      } else {
+        el.textContent = target.toFixed(decimals);
+      }
+    }
+    window.requestAnimationFrame(step);
+  }
+  if (countEls.length) {
+    if (reduceMotion || !("IntersectionObserver" in window)) {
+      countEls.forEach(function (el) {
+        el.textContent = el.getAttribute("data-count-to");
+      });
+    } else {
+      var countObserver = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+          if (entry.isIntersecting) {
+            runCount(entry.target);
+            countObserver.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.5 });
+      countEls.forEach(function (el) { countObserver.observe(el); });
+    }
   }
 
   /* ---------- FAQ accordion ---------- */
